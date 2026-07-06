@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit SHA to deploy
+        required: true
+        type: string
+      branch:
+        description: Branch to deploy
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.branch }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04.5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Print deploy inputs
+        run: |
+          echo "Deploy workflow triggered"
+          echo "ref=${{ inputs.ref }}"
+          echo "branch=${{ inputs.branch }}"

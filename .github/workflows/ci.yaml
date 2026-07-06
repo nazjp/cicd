@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, stg]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-22.04.5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test step
+        run: echo "CI ran on ${{ github.event_name }} / ${{ github.ref_name }}"
+
+      - name: Trigger deploy workflow
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/stg')
+        run: |
+          curl -sSf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy.yaml/dispatches" \
+            -d '{"ref":"${{ github.ref_name }}","inputs":{"ref":"${{ github.sha }}","branch":"${{ github.ref_name }}"}}'
